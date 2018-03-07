@@ -1,5 +1,18 @@
 apply plugin: 'com.android.application'
 
+ext.appReleaseDir = ""
+
+def loadProperties() {
+    def proFile = file("../local.properties")
+    Properties p = new Properties()
+    proFile.withInputStream { stream ->
+        p.load(stream)
+    }
+    appReleaseDir = p.appReleaseDir
+}
+
+loadProperties()
+
 android {
     compileSdkVersion 26
     buildToolsVersion '26.0.3'
@@ -17,6 +30,27 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    //修改生成的apk名字和路径
+    applicationVariants.all{ variant->
+        variant.outputs.each { output->
+            if(variant.buildType.name.equals('release')){
+                output.outputFile = new File(appReleaseDir+"/" +"apk/"+getDate()+ '-release.apk')
+            }
+            if(variant.buildType.name.equals('beta')){
+            }
+            if(variant.buildType.name.equals('debug')){
+
+            }
+        }
+    }
+
+}
+
+//获取时间戳
+def getDate() {
+    def date = new Date()
+    def formattedDate = date.format('yyyyMMddHHmm')
+    return formattedDate
 }
 
 dependencies {
