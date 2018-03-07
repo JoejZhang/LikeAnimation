@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 
 ext.appReleaseDir = ""
 
+//签名路径
 def loadProperties() {
     def proFile = file("../local.properties")
     Properties p = new Properties()
@@ -24,8 +25,33 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
+    signingConfigs {
+        //系统变量中获取签名信息
+        def appStoreFile = System.getenv("STORE_FILE")
+        def appStorePassword = System.getenv("STORE_PASSWORD")
+        def appKeyAlias = System.getenv("KEY_ALIAS")
+        def appKeyPassword = System.getenv("KEY_PASSWORD")
+
+        //当不能从环境变量里获取到签名信息的时候，就使用项目中带的debug签名
+        if (!appStoreFile || !appStorePassword || !appKeyAlias || !appKeyPassword) {
+            appStoreFile = "debug.keystore"
+            appStorePassword = "android"
+            appKeyAlias = "androiddebugkey"
+            appKeyPassword = "android"
+        }
+
+        release {
+            storeFile file(appStoreFile)
+            storePassword appStorePassword
+            keyAlias appKeyAlias
+            keyPassword appKeyPassword
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
+            zipAlignEnabled true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
